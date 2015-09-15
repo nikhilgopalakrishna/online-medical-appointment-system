@@ -1,0 +1,55 @@
+
+  Simulate an online medical appointment system using a hybrid	architecture of TCP and UDP sockets.
+  The project has three major phases:
+  1)Phase1 : Authenticating into the health center server
+  2)Phase2 : Requesting available appointments and reserving one of them, and
+  3)Phase3 : Sending insurance information to the corresponding doctor to get an estimated cost for the visit.
+
+  Phase 1: Authenticating into the health center server
+    A health center server is created with TCP socket (Port : 21720) to listen to the patient client to connect to. The health center server accepts the connection and creates new child server thread to handle the patient's request. This is implemented using pthreads to handle concurrent requests. When the health center server accepts the connection, the patient sends authentication request with his username and password. when the patient the server checks the provided username and password with its database and sends success on match or failure on no match found in database. On failure, patient prints result closes socket and exits connection. 
+
+  Phase2 : Requesting available appointments and reserving one of them
+     On successful authentication, patient requests for the list of available timeslot to server. The server then sends the list of available appointments to patient to select from. The patient is prompted to select the appointment from the list sent by server. On invalid selection, patient is prompted again to make a valid selection. Once the patient sends the selection, server checks if the selection is available. If available, server marks the appointment as reserved and sends the doctor (doc1/doc2) and port information(41720/42720) to the patient. If not available (already reserved) then server rejects the request and sends not available to patient and the patient closes the socket and exits.
+
+  Phase3 : Sending insurance information to the corresponding doctor to get an estimated cost for the visit. 
+    Doctor1 server with port(41720) and doctor2 server with port (42720) created in the same program using fork system call are waiting for the patient's request. Once the patient receives the doctor and port information from the health center server, it closes the TCP socket, creates a new UDP socket to communicate to the doctor server with the port number received. The patient sends his insurance plan information to the corresponding doctor server. The doctor receives the insurance plan of the patient, looks for the cost estimate for the patient corresponding to the insurance plan received and sends the the cost back to the patient. On the receiveing the cost from the doctor, it prints the information on the screen and exits.
+
+d. What your code files are and what each one of them does.
+
+    (i) healthcenterserver.c : Create HealthCenter Server(TCP socket  Port - 21720) and handle incoming connections (concurrent) from patients and information requests . ( Multithreading implemented )
+    (ii) patient1.c  : Create client patient1 to connect to health center server ( TCP socket ) to make an appointment and connect to doctor server ( UDP socket ) to get cost corresponding to his insurance with the appointed doctor.
+    (iii) patient2.c  : Create client patient2 to connect to health center server ( TCP socket ) to make an appointment and connect to doctor server ( UDP socket ) to get cost corresponding to his insurance with the appointed doctor.
+    (iv) doctor.c : Create 2 doctor servers - doctor1 and doctor2 (UDP sockets) to handles UDP requests from patients and send cost w.r.t received insurance plan of patient.
+    (v)  healthcenterserver.h : Datastructures for users_info, availabilityinfo, server_handler_args.
+    (vi) doctor.h : Datastructure for doc_insurance_info.
+    (vii) patient1.h : Datastructures for patient_info , doctor_info.
+    (viii) patient2.h : Datastructures for patient_info , doctor_info.
+
+BUILD:
+
+    (i)   make socket
+    (ii)  ./healthcenterserver
+    (iii) ./doctor
+    (iv)  ./patient1
+    (v)   ./patient2
+
+The format of all the messages exchanged.
+       Phase1 :
+                Patient (client) sends auhentication request to healthcenterserver.   "authenticate username password"
+                Health center server sends response  to patient. "success" or "failure"
+       Phase2 :
+                Patient sends request to Healthcenter server for available slots. "available"
+                Health center server sends availability list to patient. eg: "1 Tue 01pm"
+                Patient sends preference information  to healthcenterserver. eg : "selection 1"
+                Health center server sends doctor and port information to patient eg:  "doc2 41720".
+        Phase3 :
+                Patient sends his insurance plan information to doctor. eg: "insurance1"
+                Doctor sends  cost estimation to patient. eg: "30"
+
+Any idiosyncrasy of your project. It should say under what conditions the project fails, if any.
+      No
+
+
+
+
+
